@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ARGriko</title>
+    <meta name="description" content="Contenuti in AR sul Griko">
+    <!-- In questa sezione si effettuano le chiamate a tutte le librerie Javascript esterne che devono mettere a disposizione funzioni per questa pagina -->
+    <!-- Questa è la libreria principale: A-Frame. Sono le sue funzioni che permettono di costruire la scena 3D-->
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <!-- Questa libreria permette di gestire chiamate ad eventi dall'interno dei tag specifici di A-Frame-->
+    <script src="https://unpkg.com/aframe-event-set-component@5/dist/aframe-event-set-component.min.js"></script>
+    <!-- Questa libreria permette di rendere meno verbosa la scrittura del codice, creando dei template per A-Entity... con una serie di default impostati, dai quali derivare poi istanze specializzate -->
+    <script src="https://unpkg.com/aframe-template-component@3.2.1/dist/aframe-template-component.min.js"></script>
+    <!-- Probabilmente questa libreria per ora non viene usata: serve per gestire al di fuori dell'oggetto chiamante gli ecenti creati con aframe-event-set-component. Non credo siano rimaste chiamate a questa libreria in questa versione dello script, ma potrebbe servire per attivare l'audio della lettura dei lemmi.-->
+    <script src="https://unpkg.com/aframe-proxy-event-component@2.1.0/dist/aframe-proxy-event-component.min.js"></script>
+    <!-- ################################################### -->
+    <!-- This is a big mistake for many reasons and can be only a very temporary solution. -->
+    <!-- ################################################### -->
+    <!-- Le due librerie che seguono servono a gestire il movimento tramite tastiera e a fornire le funzioni per creare lo slide-show. Non è una buona cosa copiare il sorgente dentro la propria repo, sia per problemi di riconoscimento di diritti che di possibili disallineamenti tra versioni. Però, questa è una soluzione veloce per la demo-->
+    <script src="https://doc-divago.github.io/360ImageGallery/vendor/extended-wasd-controls.js"></script>
+    <script src="https://doc-divago.github.io/360ImageGallery/vendor/aframe-spritesheet-animation.js"></script>
+
+    <!-- Image link template to be reused. -->
+    <script id="link" type="text/html">
+      <a-entity class="link"
+        geometry="primitive: circle; radius: 0.6;"
+        material="shader: flat; src: ${thumb}"
+        link="href: ${href}"
+        event-set__mouseenter="scale: 1.2 1.2 1"
+        event-set__mouseleave="scale: 1 1 1"
+        sound="on: click; src: #click-sound"></a-entity>
+    </script>
+    <!-- event-set__click="_target: #image-360; _delay: 300; material.src: ${src}" -->
+    <!-- proxy-event="event: click; to: #image-360; as: fade" -->
+  </head>
+  <body>
+    <!-- Qui comincia la A-Scene -->
+    <a-scene>
+      <!-- Qui si gestice il pre-caricamento in memoria delle immagini e dei video che saranno usati. In questo modo si caricano una volta sola e si risparmia traffico e interazione col server.-->
+      <a-assets>
+        <!-- == Sounds == -->
+        <audio id="click-sound" crossorigin="anonymous" src="../assets/click.ogg"></audio>
+        <!-- == 360° images == -->
+        <img id="germany" crossorigin="anonymous" src="../assets/germany-hires.jpg">
+        <img id="germany-thumb" crossorigin="anonymous" src="../assets/germany-hires.jpg">
+        <img id="square" crossorigin="anonymous" src="../assets/square.jpg">
+        <img id="square-thumb" crossorigin="anonymous" src="../assets/square.jpg">
+        <img id="spritesheet" crossorigin="anonymous" src="../assets/spritesheet-aquila.png">
+        <video id="video" crossorigin="anonymous" loop="true" src="../assets/laquila-rottweil.mp4" autoplay></video>
+      </a-assets>
+
+      <!--Questo crea lo sfondo. Nella versione AR si rimuove e lo si lascia gestire da A-Camera.-->
+      <!-- 360-degree image. -->
+      <a-sky id="image-360" radius="50" rotation="0 -90 0" src="#germany"
+             animation__fade="property: components.material.material.color; type: color; from: #FFF; to: #000; dur: 300; startEvents: fade"
+             animation__fadeback="property: components.material.material.color; type: color; from: #000; to: #FFF; dur: 300; startEvents: animationcomplete__fade"></a-sky>
+
+      <!-- Image links. -->
+      <!-- Questo è il "totem" che gestisce il link ad altre pagine HTML.-->
+      <!-- In questo esempio darà un errore 404, perché la pagina html cercato non esiste. Se vi serve va creata.-->
+      <!-- È un sistema di incastro di primitive per ottenere la forma complessa finale.-->
+      <!-- La a-entity "links" fa da contenitore esterno. -->
+      <!-- Dentro ha un cerchio e due testi, che a loro volta contengono altre componenti geometiche che si muovono in maniera solidarel con loro-->
+      <!-- Al cerchio sono attaccate tutte le componenti necessarie per costruire un portale/link. -->
+      <!-- Il testo "Additional content" fa da base per attaccarci il video.-->
+      <!-- Il testo "Basic info" fa da base per attaccarci lo slide-show -->
+      <!-- La cosa importante da ricordarsi è che, quando una primitiva è "embedded" dentro un'altra, la sua posizione deve essere espressa in coordinate relative alla primitiva alla quale è solidale. Quindi qui in pratica si stabilisce la posizione assoluta della a-entity esterna (centrata nell'origine dello spazio) e poi il cerchio e i due testi si piazzano descrivendo quanto si spostano dalla a-entity. Stessa cosa per le primitive appiccicate al cerchio e ai due testi rispettivamente -->
+      <a-entity id="links"  position="0 0 0">
+        <a-circle color="#0C0" radius="0.8" position="-6 0.5 0" rotation="0 90 0">
+          <a-entity template="src: #link" data-href="../foligno.html" data-src="#square" data-thumb="#square-thumb" position="0 0 0.1">
+          </a-entity>
+          <a-text value="Back to" geometry="primitive:plane"  position="0 1 -0.1" align="center" anchor="center"></a-text>
+          <a-text value="Europa Square" geometry="primitive:plane;" position="0 -1 -0.1" align="center" anchor="center"></a-text>
+        </a-circle>
+
+        <a-text value="Additional Content" geometry="primitive:plane; width:2.56; height:1.44;" material="color: white"  position="2.5 0.5 -2.5" rotation="0 -15 0" align="center" anchor="center">
+          <a-box color="silver" depth="0.12" height="0.09" width="2.56" position="0 0.675 0.05"></a-box>
+          <a-box color="silver" depth="0.12" height="0.09" width="2.56" position="0 -0.675 0.05"></a-box>
+          <a-box color="silver" depth="0.12" height="1.26" width="0.16" position="1.20 0 0.05"></a-box>
+          <a-box color="silver" depth="0.12" height="1.26" width="0.16" position="-1.20 0 0.05"></a-box>
+          <a-video
+      			id = "video-display"
+      			width="2.4" height="1.35"
+      			position="0 0 0.01"
+      			src="#video">
+      		</a-video>
+        </a-text>
+
+        <a-text value="Basic info" geometry="primitive:plane; width:2.4; height:1.35;" material="color: black" position="-2.5 0.5 -2.5" rotation="0 15 0" align="center" anchor="center">
+          <!-- Grazie a una libreria esterna l'entità img acquisisce alcune componenti in più (spritesheet-animation & co), che permettono di gestire lo slide-show. In pratica, img viene a sapere di contenere una immagine di una riga, suddivisa in tre parti uguali e che ciascuna slide la deve tenere 10 secondi-->
+          <a-image width="2.4" height="1.35" position="0 0 0.01" src="#spritesheet" material="blending: normal; transparent: true; alphaTest: 0.01;" spritesheet-animation="rows: 1; columns: 3; frameDuration: 10.00; loop: true;"></a-image>
+          <a-box color="silver" depth="0.12" height="0.09" width="2.56" position="0 0.675 0.05"></a-box>
+          <a-box color="silver" depth="0.12" height="0.09" width="2.56" position="0 -0.675 0.05"></a-box>
+          <a-box color="silver" depth="0.12" height="1.26" width="0.16" position="1.20 0 0.05"></a-box>
+          <a-box color="silver" depth="0.12" height="1.26" width="0.16" position="-1.20 0 0.05"></a-box>
+        </a-text>
+      </a-entity>
+
+      <!-- Camera + cursor. -->
+      <!-- Qui è dove cambia quando si va in AR, perché si usa una telecamera diversa. Per ora non va toccato-->
+      <a-entity camera extended-wasd-controls="flyEnabled: true; turnEnabled: true; lookEnabled: true; maxLookAngle: 60;">
+        <a-cursor
+          id="cursor"
+          animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
+          animation__fusing="property: fusing; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
+          event-set__mouseenter="_event: mouseenter; color: springgreen"
+          event-set__mouseleave="_event: mouseleave; color: black"
+          raycaster="objects: .link"></a-cursor>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>
